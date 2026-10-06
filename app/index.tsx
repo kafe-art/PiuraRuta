@@ -1,4 +1,24 @@
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  Alert,
+} from 'react-native';
+
+import { router } from 'expo-router';
+
+type PresupuestoTipo = 'BARATO' | 'MEDIO' | 'CARO';
+
+interface UsuarioSesion {
+  id: number;
+  nombre: string;
+  esInvitado: boolean;
+}
 
 export default function HomeScreen() {
   // Estado de usuario / sesión
@@ -61,10 +81,109 @@ export default function HomeScreen() {
 
   // 2. Vista Principal de la Aplicación
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>¡Bienvenido a PiuraRuta!</Text>
-      <Text style={styles.subtitle}>Tu app de rutas en Piura.</Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* Barra Superior */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greetingTitle}>Hola, {usuario.nombre}</Text>
+          <Text style={styles.greetingSub}>
+            {usuario.esInvitado ? 'Modo Invitado (Sesión temporal)' : 'Perfil Turista'}
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.logoutBtn} onPress={() => setUsuario(null)}>
+          <Text style={styles.logoutBtnText}>Salir</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Selector de Presupuesto Cualitativo */}
+        <Text style={styles.sectionHeader}>Presupuesto de tu ruta</Text>
+        <View style={styles.budgetSelector}>
+          {(['BARATO', 'MEDIO', 'CARO'] as PresupuestoTipo[]).map((nivel) => {
+            const activo = presupuesto === nivel;
+            return (
+              <TouchableOpacity
+                key={nivel}
+                style={[styles.budgetTab, activo && styles.budgetTabActive]}
+                onPress={() => setPresupuesto(nivel)}
+              >
+                <Text style={[styles.budgetTabText, activo && styles.budgetTabTextActive]}>
+                  {nivel === 'BARATO' ? '🟢 Barato' : nivel === 'MEDIO' ? '🟡 Medio' : '🔴 Caro'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Categorías */}
+        <Text style={styles.sectionHeader}>Categorías populares</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesList}>
+          {['Gastronomía', 'Bebidas', 'Artesanías', 'Chifles / Snacks'].map((cat) => {
+            const activo = categoriaSeleccionada === cat;
+            return (
+              <TouchableOpacity
+                key={cat}
+                style={[styles.catBadge, activo && styles.catBadgeActive]}
+                onPress={() => setCategoriaSeleccionada(cat)}
+              >
+                <Text style={[styles.catBadgeText, activo && styles.catBadgeTextActive]}>
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Tarjeta de Acción: Generar Ruta */}
+        <View style={styles.routeCard}>
+          <Text style={styles.routeCardTitle}>Ruta Inteligente al Paso</Text>
+          <Text style={styles.routeCardSub}>
+            Categoría: {categoriaSeleccionada} • Nivel: {presupuesto}
+          </Text>
+          <TouchableOpacity
+            style={styles.generateBtn}
+            onPress={() => router.push('/map')}
+          >
+            <Text style={styles.generateBtnText}>Generar Ruta a Pie</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Puestos Abiertos Ahora */}
+        <Text style={styles.sectionHeader}>Puestos Abiertos Ahora</Text>
+
+        <View style={styles.spotCard}>
+          <View style={styles.spotHeader}>
+            <Text style={styles.spotName}>Cevichería Don Lucho</Text>
+            <View style={styles.badgeOpen}>
+              <Text style={styles.badgeOpenText}>Abierto</Text>
+            </View>
+          </View>
+          <Text style={styles.spotInfo}>Ceviche al paso tradicional • Frente a la Plaza de Armas</Text>
+          <Text style={styles.spotTags}>Gama: Barato • Métodos: Yape / Efectivo</Text>
+        </View>
+
+        <View style={styles.spotCard}>
+          <View style={styles.spotHeader}>
+            <Text style={styles.spotName}>Chifles Doña Rosa</Text>
+            <View style={styles.badgeOpen}>
+              <Text style={styles.badgeOpenText}>Abierto</Text>
+            </View>
+          </View>
+          <Text style={styles.spotInfo}>Snacks piuranos clásicos • Mercado Central</Text>
+          <Text style={styles.spotTags}>Gama: Barato • Métodos: Efectivo</Text>
+        </View>
+      </ScrollView>
+
+      {/* Botón Flotante para Postular Puesto */}
+      <TouchableOpacity
+        style={styles.fabButton}
+        onPress={() => Alert.alert('Postular Negocio', 'Captura tu GPS y sube una foto del puesto.')}
+      >
+        <Text style={styles.fabButtonText}>+ Postular Puesto</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
