@@ -8,43 +8,60 @@ export interface Business {
   id: number;
   name: string;
   category: string;
-  product: string;
-  description: string;
-  price: number;
+  product?: string;
+  description?: string;
+  price?: number;
   latitude: number;
   longitude: number;
   verified: boolean;
   confidence: number;
   rating: number;
   paymentMethods: string[];
-  openingHours: string; // formato "HH:MM - HH:MM"
+  openingHours: string; // Formato "HH:MM - HH:MM"
   estado: EstadoNegocio;
   tags: string[];
   referencia: string;
-  direccion?: string;
+  direccion: string;
   foto?: string;
+
+  // Campos de compatibilidad con base de datos
+  id_categoria?: number;
+  id_presupuesto?: number;
+  foto_portada_url?: string;
+  calificacion_promedio?: number;
+  total_reseñas?: number;
+  estado_apertura?: boolean;
 }
 
 export const businesses: Business[] = [
-  {
+  
+   {
     id: 1,
-    name: 'La Piuranita Tradición',
+    name: 'El Buen Sabor Piurano',
     category: 'Gastronomía',
-    product: 'Seco de Chabelo & Majado',
-    description: 'Puesto emblemático de comida típica piurana con plátano verde y cecina norteña.',
-    price: 14,
+    product: 'Seco de Chabelo',
+    description: 'Comida tradicional piurana preparada con plátano verde y carne aliñada.',
+    price: 12,
     latitude: -5.1945,
     longitude: -80.6328,
     verified: true,
-    confidence: 94,
+    confidence: 92,
     rating: 4.8,
-    paymentMethods: ['Yape', 'Efectivo', 'Plin'],
-    openingHours: '10:30 - 16:30',
+    paymentMethods: ['Yape', 'Efectivo'],
+    openingHours: '11:00 - 17:00',
     estado: 'aprobado',
-    tags: ['almuerzo', 'criollo', 'tradicional', 'seco de chabelo', 'plátano'],
-    referencia: 'A media cuadra de la Plaza de Armas de Piura',
-    direccion: 'Jr. Huancavelica 450',
-    foto: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+    tags: ['almuerzo', 'criollo', 'tradicional', 'seco de chabelo'],
+    referencia: 'A media cuadra de la plaza',
+    direccion: 'Jr. Ayacucho 456, Centro de Piura',
+    foto: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+
+    // Campos complementarios
+    id_categoria: 1,
+    id_presupuesto: 2,
+    foto_portada_url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+    calificacion_promedio: 4.8,
+    total_reseñas: 124,
+    estado_apertura: true,
   },
   {
     id: 2,
@@ -167,43 +184,31 @@ export const businesses: Business[] = [
     foto: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
   },
   {
-    id: 8,
-    name: 'El Rincón Piurano (Anticuchos y Picarones)',
-    category: 'Chifles / Snacks',
-    product: 'Picarones de Camote con Miel de Higo',
-    description: 'Puesto nocturno tradicional con picarones calientes recién dorados.',
-    price: 8,
-    latitude: -5.1970,
-    longitude: -80.6322,
-    verified: false,
-    confidence: 72,
-    rating: 4.4,
-    paymentMethods: ['Efectivo', 'Yape'],
-    openingHours: '17:00 - 22:30',
-    estado: 'evaluacion', // PUESTO EN EVALUACIÓN PARA DEMOSTRAR EL ÍCONO ⏳
-    tags: ['picarones', 'postres', 'noche', 'calle', 'anticuchos'],
-    referencia: 'Frente al Óvalo Bolognesi',
-    direccion: 'Av. Bolognesi 880',
-    foto: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 9,
-    name: 'Sombreros de Paja Don Teodoro',
+    id: 3,
+    name: 'Puesto Calle Cusco',
     category: 'Artesanías',
-    product: 'Sombreros de Paja Toquilla',
-    description: 'Tejido fino a mano por maestros artesanos del bajo Piura.',
-    price: 35,
-    latitude: -5.1948,
-    longitude: -80.6305,
-    verified: false,
-    confidence: 68,
-    rating: 4.3,
-    paymentMethods: ['Efectivo', 'Yape'],
-    openingHours: '09:00 - 17:00',
-    estado: 'evaluacion', // PUESTO EN EVALUACIÓN PARA DEMOSTRAR EL ÍCONO ⏳
-    tags: ['sombreros', 'toquilla', 'artesania', 'hecho a mano'],
-    referencia: 'Paso peatonal Jr. Arequipa',
-    direccion: 'Jr. Arequipa 340',
-    foto: 'https://images.unsplash.com/photo-1582738411706-bfc8e691d1c2?auto=format&fit=crop&w=600&q=80',
-  },
+    product: 'Productos artesanales piuranos',
+    description: 'Venta de productos tradicionales hechos a mano.',
+    price: 15,
+    latitude: -5.1965,
+    longitude: -80.6285,
+    verified: true,
+    confidence: 85,
+    rating: 4.5,
+    paymentMethods: ['Yape', 'Efectivo'],
+    openingHours: '09:00 - 16:00',
+    estado: 'aprobado',
+    tags: ['artesania', 'recuerdos', 'hecho a mano'],
+    referencia: 'Cerca a la plaza principal',
+    direccion: 'Calle Cusco 789, Piura',
+    foto: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800',
+
+    // Campos adicionales compatibles
+    id_categoria: 2,
+    id_presupuesto: 1,
+    foto_portada_url: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800',
+    calificacion_promedio: 4.5,
+    total_reseñas: 89,
+    estado_apertura: true,
+  }
 ];
