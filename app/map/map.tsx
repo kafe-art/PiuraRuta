@@ -155,7 +155,7 @@ export default function MapScreen() {
           showsCompass={true}
           showsScale={true}
           showsBuildings={true}
-          showsPointsOfInterest={true}
+          showsPointsOfInterests={true}
           loadingEnabled={true}
           loadingIndicatorColor="#FF8C00"
           loadingBackgroundColor="#FFFFFF"
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   },
 
   map: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 
   legend: {
