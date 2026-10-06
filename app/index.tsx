@@ -144,7 +144,7 @@ export default function HomeScreen() {
           </Text>
           <TouchableOpacity
             style={styles.generateBtn}
-            onPress={() => router.push('/map')}
+            onPress={() => router.push('/map/map')}
           >
             <Text style={styles.generateBtnText}>Generar Ruta a Pie</Text>
           </TouchableOpacity>
