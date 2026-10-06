@@ -22,10 +22,18 @@ const ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID || ''
 const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS || '';
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB || '';
 
+// Identificador dummy para evitar que expo-auth-session lance error de invariante en render
+// cuando el desarrollador aún no ha ingresado sus credenciales reales en .env
+const DUMMY_FALLBACK_CLIENT_ID = 'piuraruta-unconfigured-client-id';
+
 export const hasGoogleCredentials = (): boolean => {
-  if (Platform.OS === 'android') return Boolean(ANDROID_CLIENT_ID);
-  if (Platform.OS === 'ios') return Boolean(IOS_CLIENT_ID);
-  return Boolean(WEB_CLIENT_ID);
+  if (Platform.OS === 'android') {
+    return Boolean(ANDROID_CLIENT_ID && ANDROID_CLIENT_ID.trim() !== '');
+  }
+  if (Platform.OS === 'ios') {
+    return Boolean(IOS_CLIENT_ID && IOS_CLIENT_ID.trim() !== '');
+  }
+  return Boolean(WEB_CLIENT_ID && WEB_CLIENT_ID.trim() !== '');
 };
 
 export const createDemoUser = (): UsuarioSesion => ({
@@ -45,16 +53,18 @@ export const createGuestUser = (): UsuarioSesion => ({
 });
 
 /**
- * Hook para manejar autenticación con Google
+ * Hook para manejar autenticación con Google sin romper el render en desarrollo
  */
 export function useGoogleAuth(onLoginSuccess?: (user: UsuarioSesion) => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Proporcionamos DUMMY_FALLBACK_CLIENT_ID en lugar de undefined para que expo-auth-session
+  // no lance error de invariante en tiempo de render en iOS / Android / Web.
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: ANDROID_CLIENT_ID || undefined,
-    iosClientId: IOS_CLIENT_ID || undefined,
-    webClientId: WEB_CLIENT_ID || undefined,
+    androidClientId: ANDROID_CLIENT_ID || DUMMY_FALLBACK_CLIENT_ID,
+    iosClientId: IOS_CLIENT_ID || DUMMY_FALLBACK_CLIENT_ID,
+    webClientId: WEB_CLIENT_ID || DUMMY_FALLBACK_CLIENT_ID,
   });
 
   useEffect(() => {
@@ -81,8 +91,10 @@ export function useGoogleAuth(onLoginSuccess?: (user: UsuarioSesion) => void) {
 
   const iniciarSesionGoogle = async () => {
     setError(null);
+
+    // Si aún no se configuraron credenciales reales en .env, entramos directamente como Demo
+    // sin intentar abrir la redirección de Google
     if (!hasGoogleCredentials()) {
-      // Si no están configuradas las credenciales de Google, entrar como Demo
       const demo = createDemoUser();
       onLoginSuccess?.(demo);
       return demo;

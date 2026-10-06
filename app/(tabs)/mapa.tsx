@@ -14,6 +14,7 @@ import {
   StatusBar,
   Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useApp } from '../../lib/store';
 import { safePoints, SafePoint } from '../../data/safePoints';
 import { Business } from '../../data/businesses';
@@ -32,6 +33,7 @@ function quitarTildes(texto: string): string {
 }
 
 export default function MapaScreen() {
+  const router = useRouter();
   const { negocios, rutaActiva, setRutaActiva, actualizarParadasRutaActiva } = useApp();
 
   const mapaRef = useRef<MapaWebRef>(null);
@@ -150,6 +152,14 @@ export default function MapaScreen() {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Botón Alternar a Mapa Nativo */}
+        <TouchableOpacity
+          style={styles.switchNativeBtn}
+          onPress={() => router.push('/map/map')}
+        >
+          <Text style={styles.switchNativeText}>📱 Nativo</Text>
+        </TouchableOpacity>
 
         {/* Botón Centrar Piura */}
         <TouchableOpacity
@@ -299,6 +309,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: C.textMuted,
     fontWeight: '700',
+  },
+  switchNativeBtn: {
+    backgroundColor: C.surface,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  switchNativeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.secondary,
   },
   centerBtn: {
     width: 44,

@@ -104,10 +104,16 @@ export default function NuevoNegocioScreen() {
       openingHours: `${horaApertura.trim()} - ${horaCierre.trim()}`,
       tags: [categoria.toLowerCase(), producto.toLowerCase().split(' ')[0]],
       referencia: referencia.trim(),
-      direccion: direccion.trim() || undefined,
+      direccion: direccion.trim() || referencia.trim(),
       foto:
         fotoUrl.trim() ||
-        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+      foto_portada_url:
+        fotoUrl.trim() ||
+        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+      calificacion_promedio: 4.5,
+      total_reseñas: 0,
+      estado_apertura: false,
     });
 
     Alert.alert(

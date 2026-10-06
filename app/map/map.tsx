@@ -1,5 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+// ==========================================
+// PiuraRuta - Mapa Nativo Integrado (app/map/map.tsx)
+// ==========================================
 
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Alert,
   SafeAreaView,
@@ -7,34 +10,32 @@ import {
   Text,
   TouchableOpacity,
   View,
+  StatusBar,
 } from 'react-native';
-
-import MapView, {
-  Callout,
-  Marker,
-  Polyline,
-  PROVIDER_DEFAULT,
-} from 'react-native-maps';
+import { useRouter } from 'expo-router';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 
 import BusinessMarker from '../../components/BusinessMarker';
+import NegocioSheet from '../../components/NegocioSheet';
+import { useApp } from '../../lib/store';
+import { safePoints, SafePoint } from '../../data/safePoints';
+import { Business } from '../../data/businesses';
+import { C } from '../../lib/theme';
 
-import { businesses, Business } from '../../data/businesses';
-import { safePoints } from '../../data/safePoints';
-
-export default function MapScreen() {
+export default function NativeMapScreen() {
+  const router = useRouter();
   const mapRef = useRef<MapView | null>(null);
 
-  const [selectedBusiness, setSelectedBusiness] =
-    useState<Business | null>(null);
+  const {
+    negocios,
+    rutaActiva,
+    actualizarParadasRutaActiva,
+  } = useApp();
 
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [showRoute, setShowRoute] = useState(true);
 
-  /*
-   * Centro inicial del mapa.
-   *
-   * Estas coordenadas corresponden a la zona
-   * de demostración que estamos utilizando.
-   */
+  // Coordenadas del centro de Piura
   const piuraRegion = {
     latitude: -5.1945,
     longitude: -80.6328,
@@ -42,110 +43,91 @@ export default function MapScreen() {
     longitudeDelta: 0.012,
   };
 
-  /*
-   * Negocios que forman nuestra ruta de demostración.
-   *
-   * Posteriormente esto será generado por el
-   * recomendador según presupuesto, categoría y tiempo.
-   */
-  const routeBusinesses = useMemo(() => {
-    return businesses.filter(
-      (business) =>
-        business.verified &&
-        [1, 2, 3].includes(business.id)
-    );
-  }, []);
+  // Coordenadas calculadas desde la ruta activa global
+  const routeCoordinates = useMemo(() => {
+    if (!rutaActiva || !rutaActiva.paradas) return [];
+    return rutaActiva.paradas
+      .filter((p) => p.business)
+      .map((p) => ({
+        latitude: p.business.latitude,
+        longitude: p.business.longitude,
+      }));
+  }, [rutaActiva]);
 
-  /*
-   * Coordenadas que utilizará Polyline.
-   */
-  const routeCoordinates = routeBusinesses.map((business) => ({
-    latitude: business.latitude,
-    longitude: business.longitude,
-  }));
-
-  /*
-   * Cuando se pulsa un negocio.
-   */
-  const handleBusinessPress = (business: Business) => {
-    setSelectedBusiness(business);
-  };
-
-  /*
-   * Centrar el mapa nuevamente sobre Piura.
-   */
+  // Centrar el mapa en Piura
   const centerMap = () => {
-    mapRef.current?.animateToRegion(
-      piuraRegion,
-      800
-    );
+    mapRef.current?.animateToRegion(piuraRegion, 800);
   };
 
-  /*
-   * Centrar el mapa mostrando toda la ruta.
-   */
+  // Centrar el mapa mostrando toda la ruta
   const showFullRoute = () => {
     if (routeCoordinates.length === 0) {
+      Alert.alert('Aviso', 'Aún no hay una ruta activa generada.');
       return;
     }
 
-    mapRef.current?.fitToCoordinates(
-      routeCoordinates,
-      {
-        edgePadding: {
-          top: 120,
-          right: 50,
-          bottom: 220,
-          left: 50,
-        },
-        animated: true,
-      }
-    );
+    mapRef.current?.fitToCoordinates(routeCoordinates, {
+      edgePadding: {
+        top: 120,
+        right: 60,
+        bottom: 220,
+        left: 60,
+      },
+      animated: true,
+    });
   };
 
-  /*
-   * Mostrar información del negocio seleccionado.
-   */
-  const openBusiness = () => {
-    if (!selectedBusiness) {
+  const handleAgregarARuta = (b: Business) => {
+    if (!rutaActiva) {
+      Alert.alert('Sin ruta', 'Crea primero una ruta en la pestaña de Inicio.');
+      return;
+    }
+    const yaEsta = rutaActiva.paradas.some((p) => p.business.id === b.id);
+    if (yaEsta) {
+      Alert.alert('Aviso', 'Este puesto ya forma parte de tu ruta.');
       return;
     }
 
-    Alert.alert(
-      selectedBusiness.name,
-      `${selectedBusiness.product}\n\n` +
-        `Precio: S/${selectedBusiness.price}\n` +
-        `Confianza: ${selectedBusiness.confidence}/100\n\n` +
-        `Horario: ${selectedBusiness.openingHours}\n` +
-        `Pago: ${selectedBusiness.paymentMethods.join(', ')}`
-    );
+    const nuevaParada = {
+      paso: rutaActiva.paradas.length + 1,
+      business: b,
+      horaLlegada: '13:00',
+      horaSalida: '13:45',
+      minutosEstancia: 40,
+      minutosTraslado: 10,
+      distanciaDesdeAnteriorKm: 0.5,
+      estaAbierto: true,
+    };
+    actualizarParadasRutaActiva([...rutaActiva.paradas, nuevaParada]);
+    setSelectedBusiness(null);
+    Alert.alert('¡Agregado!', `"${b.name}" ha sido agregado a tu ruta.`);
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
       {/* ENCABEZADO */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>
-            Explorar Piura
-          </Text>
-
-          <Text style={styles.subtitle}>
-            Negocios y puntos seguros
-          </Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Mapa Nativo Piura</Text>
+          <Text style={styles.subtitle}>Negocios tradicionales y puntos seguros</Text>
         </View>
 
+        {/* Botón para alternar al Mapa Web (Leaflet) */}
         <TouchableOpacity
-          style={styles.centerButton}
-          onPress={centerMap}
+          style={styles.switchMapBtn}
+          onPress={() => router.push('/(tabs)/mapa')}
         >
-          <Text style={styles.centerButtonText}>
-            📍
-          </Text>
+          <Text style={styles.switchMapText}>🌐 Mapa Web</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.centerButton} onPress={centerMap}>
+          <Text style={styles.centerButtonText}>📍</Text>
         </TouchableOpacity>
       </View>
 
-      {/* MAPA */}
+      {/* MAPA NATIVO */}
       <View style={styles.mapContainer}>
         <MapView
           ref={mapRef}
@@ -157,17 +139,24 @@ export default function MapScreen() {
           showsBuildings={true}
           showsPointsOfInterests={true}
           loadingEnabled={true}
-          loadingIndicatorColor="#FF8C00"
+          loadingIndicatorColor={C.primary}
           loadingBackgroundColor="#FFFFFF"
         >
-          {/* NEGOCIOS */}
-          {businesses.map((business) => (
-            <BusinessMarker
-              key={business.id}
-              business={business}
-              onPress={handleBusinessPress}
-            />
-          ))}
+          {/* NEGOCIOS (incluye verificados y en evaluación ⏳) */}
+          {negocios.map((business) => {
+            const paradaEnRuta = rutaActiva?.paradas.find(
+              (p) => p.business.id === business.id
+            );
+            return (
+              <BusinessMarker
+                key={business.id}
+                business={business}
+                isRouteStop={Boolean(paradaEnRuta)}
+                stopNumber={paradaEnRuta?.paso}
+                onPress={(b) => setSelectedBusiness(b)}
+              />
+            );
+          })}
 
           {/* PUNTOS SEGUROS */}
           {safePoints.map((point) => (
@@ -180,164 +169,110 @@ export default function MapScreen() {
               title={`🛡️ ${point.name}`}
               description={point.description}
               pinColor="#1565C0"
+              onPress={() =>
+                Alert.alert(
+                  `🛡️ ${point.name}`,
+                  `${point.description}\n\nContacto: ${point.telefono || '105'}`
+                )
+              }
             />
           ))}
 
-          {/* RUTA */}
-          {showRoute &&
-            routeCoordinates.length > 1 && (
-              <Polyline
-                coordinates={routeCoordinates}
-                strokeColor="#FF8C00"
-                strokeWidth={5}
-                lineCap="round"
-                lineJoin="round"
-              />
-            )}
+          {/* POLILÍNEA DE LA RUTA ACTIVA */}
+          {showRoute && routeCoordinates.length > 1 && (
+            <Polyline
+              coordinates={routeCoordinates}
+              strokeColor={C.primary}
+              strokeWidth={5}
+              lineCap="round"
+              lineJoin="round"
+            />
+          )}
         </MapView>
 
-        {/* LEYENDA */}
+        {/* LEYENDA UNIFICADA */}
         <View style={styles.legend}>
           <View style={styles.legendItem}>
-            <View
-              style={[
-                styles.legendDot,
-                {
-                  backgroundColor: '#2E7D32',
-                },
-              ]}
-            />
-
-            <Text style={styles.legendText}>
-              Verificado
-            </Text>
+            <View style={[styles.legendDot, { backgroundColor: '#2E7D32' }]} />
+            <Text style={styles.legendText}>Verificado</Text>
           </View>
 
           <View style={styles.legendItem}>
-            <View
-              style={[
-                styles.legendDot,
-                {
-                  backgroundColor: '#9E9E9E',
-                },
-              ]}
-            />
-
-            <Text style={styles.legendText}>
-              Pendiente
-            </Text>
+            <Text style={{ fontSize: 11, marginRight: 2 }}>⏳</Text>
+            <Text style={styles.legendText}>En evaluación</Text>
           </View>
 
           <View style={styles.legendItem}>
-            <View
-              style={[
-                styles.legendDot,
-                {
-                  backgroundColor: '#1565C0',
-                },
-              ]}
-            />
-
-            <Text style={styles.legendText}>
-              Punto seguro
-            </Text>
+            <View style={[styles.legendDot, { backgroundColor: '#1565C0' }]} />
+            <Text style={styles.legendText}>Punto seguro</Text>
           </View>
+
+          {routeCoordinates.length > 0 && (
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: '#FF8C00' }]} />
+              <Text style={styles.legendText}>En tu ruta</Text>
+            </View>
+          )}
         </View>
       </View>
 
-      {/* BOTONES INFERIORES */}
+      {/* PANEL INFERIOR DE RUTA */}
       <View style={styles.bottomPanel}>
         <View style={styles.routeHeader}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.routeTitle}>
-              🌴 Ruta Sabores de Piura
+              {rutaActiva ? `🌴 ${rutaActiva.nombre}` : 'Sin ruta activa'}
             </Text>
 
             <Text style={styles.routeInfo}>
-              3 paradas • S/26 • 75 minutos
+              {rutaActiva
+                ? `${rutaActiva.paradas.length} paradas • S/${rutaActiva.costoEstimadoTotal} • ${Math.round(
+                    rutaActiva.duracionTotalMinutos / 60
+                  )}h ${rutaActiva.duracionTotalMinutos % 60}m`
+                : 'Genera tu recorrido con el Asistente en Inicio'}
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.routeToggle,
-              !showRoute && styles.routeToggleInactive,
-            ]}
-            onPress={() => setShowRoute(!showRoute)}
-          >
-            <Text style={styles.routeToggleText}>
-              {showRoute ? 'Ocultar' : 'Mostrar'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.routeButton}
-          onPress={showFullRoute}
-        >
-          <Text style={styles.routeButtonText}>
-            🧭 Ver ruta completa
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* TARJETA DEL NEGOCIO SELECCIONADO */}
-      {selectedBusiness && (
-        <View style={styles.businessCard}>
-          <View style={styles.businessHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.businessName}>
-                {selectedBusiness.name}
-              </Text>
-
-              <Text style={styles.businessCategory}>
-                {selectedBusiness.category}
-              </Text>
-            </View>
-
+          {routeCoordinates.length > 0 && (
             <TouchableOpacity
-              onPress={() =>
-                setSelectedBusiness(null)
-              }
+              style={[styles.routeToggle, !showRoute && styles.routeToggleInactive]}
+              onPress={() => setShowRoute(!showRoute)}
             >
-              <Text style={styles.closeButton}>
-                ✕
+              <Text style={styles.routeToggleText}>
+                {showRoute ? 'Ocultar' : 'Mostrar'}
               </Text>
             </TouchableOpacity>
-          </View>
+          )}
+        </View>
 
-          <Text style={styles.businessProduct}>
-            🍛 {selectedBusiness.product}
-          </Text>
-
-          <View style={styles.businessRow}>
-            <Text style={styles.businessPrice}>
-              S/{selectedBusiness.price}
-            </Text>
-
-            {selectedBusiness.verified && (
-              <View style={styles.verifiedBadge}>
-                <Text style={styles.verifiedText}>
-                  ✓ Mercado Seguro
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <Text style={styles.confidence}>
-            ⭐ Confianza {selectedBusiness.confidence}/100
-          </Text>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          {routeCoordinates.length > 0 && (
+            <TouchableOpacity
+              style={[styles.routeButton, { flex: 1, backgroundColor: C.secondary }]}
+              onPress={showFullRoute}
+            >
+              <Text style={styles.routeButtonText}>🧭 Ver ruta completa</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
-            style={styles.detailsButton}
-            onPress={openBusiness}
+            style={[styles.routeButton, { flex: 1.2 }]}
+            onPress={() => router.push('/(tabs)/rutas')}
           >
-            <Text style={styles.detailsButtonText}>
-              Ver información
+            <Text style={styles.routeButtonText}>
+              {rutaActiva ? '⚙️ Editar Itinerario' : 'Crear Nueva Ruta'}
             </Text>
           </TouchableOpacity>
         </View>
-      )}
+      </View>
+
+      {/* HOJA INFERIOR DETALLE DE NEGOCIO */}
+      <NegocioSheet
+        business={selectedBusiness}
+        visible={Boolean(selectedBusiness)}
+        onClose={() => setSelectedBusiness(null)}
+        onAgregarARuta={rutaActiva ? handleAgregarARuta : undefined}
+      />
     </SafeAreaView>
   );
 }
@@ -347,239 +282,133 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-
   header: {
-    height: 72,
+    height: 68,
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EDF2F7',
+    borderBottomColor: C.borderLight,
+    gap: 8,
   },
-
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: '#2D3748',
   },
-
   subtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#718096',
-    marginTop: 2,
+    marginTop: 1,
   },
-
+  switchMapBtn: {
+    backgroundColor: C.primaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  switchMapText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.primaryDark,
+  },
   centerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#FFF4E8',
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   centerButtonText: {
-    fontSize: 20,
+    fontSize: 18,
   },
-
   mapContainer: {
     flex: 1,
     position: 'relative',
   },
-
   map: {
     ...StyleSheet.absoluteFill,
   },
-
   legend: {
     position: 'absolute',
-    top: 15,
-    left: 15,
-    right: 15,
+    top: 12,
+    left: 12,
+    right: 12,
     backgroundColor: 'rgba(255,255,255,0.96)',
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: 10,
+    padding: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     elevation: 4,
     shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 6,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
   },
-
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-
   legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 4,
   },
-
   legendText: {
     fontSize: 10,
     color: '#4A5568',
     fontWeight: '600',
   },
-
   bottomPanel: {
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 18,
-    paddingTop: 14,
-    paddingBottom: 18,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: '#EDF2F7',
+    borderTopColor: C.borderLight,
   },
-
   routeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
-
   routeTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     color: '#2D3748',
   },
-
   routeInfo: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#718096',
-    marginTop: 3,
+    marginTop: 2,
   },
-
   routeToggle: {
     backgroundColor: '#FFF4E8',
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
   },
-
   routeToggleInactive: {
     backgroundColor: '#EDF2F7',
   },
-
   routeToggleText: {
     color: '#E67E00',
     fontSize: 11,
     fontWeight: '700',
   },
-
   routeButton: {
-    backgroundColor: '#FF8C00',
-    borderRadius: 12,
-    paddingVertical: 13,
+    backgroundColor: C.primary,
+    borderRadius: 10,
+    paddingVertical: 11,
     alignItems: 'center',
   },
-
   routeButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-
-  businessCard: {
-    position: 'absolute',
-    left: 15,
-    right: 15,
-    bottom: 145,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-  },
-
-  businessHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-
-  businessName: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#2D3748',
-  },
-
-  businessCategory: {
-    fontSize: 12,
-    color: '#718096',
-    marginTop: 2,
-  },
-
-  closeButton: {
-    fontSize: 18,
-    color: '#A0AEC0',
-    paddingLeft: 10,
-  },
-
-  businessProduct: {
-    fontSize: 14,
-    color: '#4A5568',
-    marginTop: 12,
-  },
-
-  businessRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-
-  businessPrice: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#E67E00',
-  },
-
-  verifiedBadge: {
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-
-  verifiedText: {
-    color: '#2E7D32',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-
-  confidence: {
-    fontSize: 12,
-    color: '#718096',
-    marginTop: 7,
-  },
-
-  detailsButton: {
-    backgroundColor: '#2D3748',
-    borderRadius: 9,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-
-  detailsButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
     fontSize: 13,
+    fontWeight: '800',
   },
 });
-

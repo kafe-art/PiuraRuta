@@ -21,6 +21,30 @@ export default function RootLayout() {
             headerShown: false,
           }}
         />
+
+        {/* Pantalla completa de detalle de negocio */}
+        <Stack.Screen
+          name="business/business"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        {/* Pantalla de mapa nativo */}
+        <Stack.Screen
+          name="map/map"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        {/* Pantalla de itinerario directo */}
+        <Stack.Screen
+          name="route/route"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
     </StoreProvider>
   );

@@ -15,6 +15,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
+import { router } from 'expo-router';
 import { Business } from '../data/businesses';
 import { useApp } from '../lib/store';
 import { estaAbiertoEnMinutos, minutosDesdeMedianoche } from '../lib/ruta';
@@ -268,6 +269,22 @@ export default function NegocioSheet({
                     </TouchableOpacity>
                   )}
                 </View>
+
+                {/* Enlace para abrir la pantalla completa (business.tsx) */}
+                <TouchableOpacity
+                  style={styles.fullDetailBtn}
+                  onPress={() => {
+                    onClose();
+                    router.push({
+                      pathname: '/business/business',
+                      params: { id: business.id.toString() },
+                    });
+                  }}
+                >
+                  <Text style={styles.fullDetailBtnText}>
+                    🔍 Ver ficha detallada completa ↗
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -658,6 +675,20 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '800',
+  },
+  fullDetailBtn: {
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  fullDetailBtnText: {
+    color: C.primaryDark,
+    fontSize: 13,
+    fontWeight: '700',
   },
   sectionTitle: {
     fontSize: 15,

@@ -11,7 +11,7 @@ import React, {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { businesses, Business } from '../data/businesses';
+import { businesses, Business, normalizarNegocio } from '../data/businesses';
 import { resenasIniciales, Resena } from '../data/index';
 import { UsuarioSesion, createDemoUser } from './auth';
 import { Ruta, ParadaRuta, recalcularItinerarioRuta } from './ruta';
@@ -101,7 +101,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             // Asegurar que los negocios base siempre estén disponibles
             negocios:
               parsed.negocios && parsed.negocios.length >= businesses.length
-                ? parsed.negocios
+                ? parsed.negocios.map(normalizarNegocio)
                 : businesses,
           }));
         }
@@ -179,11 +179,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ? Math.max(...state.negocios.map((b) => b.id)) + 1
           : 100;
 
-      const negocioCompleto: Business = {
+      const negocioCompleto = normalizarNegocio({
         ...nuevo,
         id: nuevoId,
         estado: 'evaluacion', // ¡Siempre entra en evaluación!
-      };
+      });
 
       setState((prev) => ({
         ...prev,
@@ -300,7 +300,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const limpiarTodo = useCallback(async () => {
     await AsyncStorage.removeItem(STORAGE_KEY);
-    setState({ ...defaultState, isLoaded: true });
+    setState(defaultState);
+    setIsLoaded(true);
   }, []);
 
   return (
