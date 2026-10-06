@@ -1,0 +1,50 @@
+[
+  {
+    "id": "res-1",
+    "businessId": 1,
+    "autor": "Marcos Silva",
+    "calificacion": 5,
+    "comentario": "El mejor seco de chabelo del centro histórico. La cecina muy bien sazonada y porción generosa.",
+    "fecha": "2026-09-28"
+  },
+  {
+    "id": "res-2",
+    "businessId": 1,
+    "autor": "Lucía Córdova",
+    "calificacion": 4,
+    "comentario": "Excelente atención y atienden rapidísimo. Ideal para almorzar entre paseos.",
+    "fecha": "2026-10-01"
+  },
+  {
+    "id": "res-3",
+    "businessId": 2,
+    "autor": "Gabriel Ramos",
+    "calificacion": 5,
+    "comentario": "El jugo de algarrobina bien helado es perfecto para el calor de Piura. Aceptan Yape sin problemas.",
+    "fecha": "2026-09-15"
+  },
+  {
+    "id": "res-4",
+    "businessId": 4,
+    "autor": "Valeria Morales",
+    "calificacion": 5,
+    "comentario": "Ceviche fresquísimo preparado frente a ti. Don Lucho es súper amable.",
+    "fecha": "2026-10-03"
+  },
+  {
+    "id": "res-5",
+    "businessId": 5,
+    "autor": "Jorge Paz",
+    "calificacion": 4,
+    "comentario": "Los chifles recién fritos con sal yucateca son espectaculares para llevar de recuerdo.",
+    "fecha": "2026-09-20"
+  },
+  {
+    "id": "res-6",
+    "businessId": 6,
+    "autor": "Fiorella Vega",
+    "calificacion": 4,
+    "comentario": "Buena variedad de artesanía y recuerdos. Precios justos.",
+    "fecha": "2026-09-10"
+  }
+]

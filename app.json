@@ -2,6 +2,7 @@
   "expo": {
     "name": "PiuraRuta",
     "slug": "piuraruta",
+    "scheme": "piuraruta",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -9,11 +10,16 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "pe.piuraruta.app"
     },
     "android": {
       "package": "pe.piuraruta.app"
     },
-    "web": {}
+    "web": {},
+    "plugins": [
+      "expo-web-browser",
+      "expo-sharing"
+    ]
   }
 }
