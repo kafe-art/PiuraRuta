@@ -1,0 +1,10 @@
+{
+  "description": "Explore Piura's historic market with an interactive map, AI-powered route planner, and verified vendor badges for a trusted gastronomic and artisanal tour.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
